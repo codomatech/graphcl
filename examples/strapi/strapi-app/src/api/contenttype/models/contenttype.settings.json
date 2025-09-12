@@ -1,0 +1,18 @@
+{
+  "kind": "singleType",
+  "collectionName": "contenttypes",
+  "info": {
+    "name": "contenttype"
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "testtype": {
+      "type": "string"
+    }
+  }
+}

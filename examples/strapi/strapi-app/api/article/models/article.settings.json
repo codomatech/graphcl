@@ -1,0 +1,36 @@
+{
+  "kind": "collectionType",
+  "collectionName": "articles",
+  "info": {
+    "name": "article",
+    "description": ""
+  },
+  "options": {
+    "increments": true,
+    "timestamps": true,
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "richtext"
+    },
+    "excerpt": {
+      "type": "string"
+    },
+    "publish_date": {
+      "type": "datetime"
+    },
+    "author": {
+      "model": "author"
+    },
+    "tags": {
+      "collection": "tag",
+      "via": "articles",
+      "model": "tag"
+    }
+  }
+}

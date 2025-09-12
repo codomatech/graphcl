@@ -1,0 +1,98 @@
+services:
+
+  strapi:
+    # TODO upgrade to v5 https://hub.docker.com/r/naskio/strapi
+    image: strapi/strapi:latest
+    container_name: strapi_blog
+    restart: no
+    #entrypoint: tail -f /dev/null
+    environment:
+      - DATABASE_CLIENT=sqlite
+      - DATABASE_FILENAME=/data/data.db
+      - STRAPI_ADMIN_USERNAME=admin
+      - STRAPI_ADMIN_PASSWORD=Admin123
+      - STRAPI_ADMIN_EMAIL=admin@mail.com
+      - API_TOKEN_SALT=a3340ugfslakjhr2303u4rlsdkf02u3rlsfkdnslkf
+    volumes:
+      - ./strapi-app:/srv/app
+      - ./strapi-data:/data
+    ports:
+      - "1337:1337"
+    deploy:
+      resources:
+        limits:
+          # equivalent to t3.large
+          cpus: '2.0'
+          memory: 3584M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - strapi-network
+
+  graphcl:
+    build:
+      context: ../../
+    depends_on:
+      - strapi
+    ports:
+      - "7370:7370"
+    environment:
+      - GRAPHCL_ENDPOINT=http://strapi:1337
+    networks:
+      - strapi-network
+    deploy:
+      resources:
+        limits:
+          # equivalent to t3.small
+          cpus: '2.0'
+          memory: 1536M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  load-test-strapi:
+    image: grafana/k6
+    container_name: loadtest-strapi
+    volumes:
+      - ./client-simulator:/app
+    environment:
+      - GRAPHQL_ENDPOINT=http://strapi:1337/graphql
+    depends_on:
+      - strapi
+      - activity-monitor
+    command: ["run", "--vus", "100", "/app/script.js"]
+    restart: no
+    networks:
+      - strapi-network
+
+  load-test-graphcl:
+    image: grafana/k6
+    container_name: loadtest-graphcl
+    volumes:
+      - ./client-simulator:/app
+    environment:
+      - GRAPHQL_ENDPOINT=http://graphcl:7370/graphql
+    depends_on:
+      - strapi
+      - graphcl
+      - activity-monitor
+    command: ["run", "--vus", "100", "/app/script.js"]
+    restart: no
+    networks:
+      - strapi-network
+
+  activity-monitor:
+    image: codomatech/docker-activity
+    container_name: activity-monitor
+    privileged: true
+    volumes:
+      - /sys/class/powercap:/sys/class/powercap:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./experiment-logs:/data
+    command: ["file", "--format", "json", "/data/activitymonitor-metrics.jsonp"]
+    restart: unless-stopped
+
+networks:
+  strapi-network:
+    driver: bridge
