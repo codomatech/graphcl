@@ -52,6 +52,24 @@ services:
           memory: 512M
 
   load-test-strapi:
+<<<<<<< HEAD
+=======
+    image: grafana/k6
+    container_name: k6-loadtest
+    volumes:
+      - ./client-simulator:/app
+    environment:
+      - GRAPHQL_ENDPOINT=http://strapi:1337/graphql
+    depends_on:
+      - strapi
+      - activity-monitor
+    command: ["run", "--vus", "100", "/app/script.js"]
+    restart: no
+    networks:
+      - strapi-network
+
+  load-test-graphcl:
+>>>>>>> 3c7bbe7 (Add experiment results and update README)
     image: grafana/k6
     container_name: loadtest-strapi
     volumes:
